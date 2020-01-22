@@ -1,0 +1,43 @@
+@echo off
+title %~n0
+set this="%~f0"
+call :exec_cruce
+call :show_cruce
+call \batchs\clean.bat
+goto :eof
+
+:exec_cruce
+\utils\uu\sed "/^@@@wor/,/^@@@wor/!d;//d" %this%  > tmp_1.wor
+\utils\mapinfo\mapinfow.exe -nosplash tmp_1.wor
+
+goto :eof
+@@@wor-------------------------------------------------
+!Workspace
+!Version 850|
+!Charset WindowsLatin1
+
+Open Table "C:\mapinfo\mapas\sectores_preventa_10" As sectores Interactive
+Open Table "C:\mapinfo\mapas\clientes"             As clientes Interactive
+Select * from clientes, sectores where clientes.Obj Within sectores.Obj into Mysel
+Export "MySel" Into "cruce.dbf" Type "DBF" overwrite
+'Browse * From Mysel
+run program "c:\utils\pskill.exe Mapinfow.exe"
+@@@wor-------------------------------------------------
+
+:show_cruce
+if exist *.fxp erase *.fxp
+\utils\uu\sed "/^@@@vfp/,/^@@@vfp/!d;//d" %this% > tmp_1.txt
+\utils\vfp9\vfp9.exe -t tmp_1.txt
+goto :eof
+@@@vfp------------------------------------------------
+set proc to \utils\lib
+do setting
+do X
+quit
+
+* ---------------------------
+proc X
+* ---------------------------
+use cruce
+=spybrow()
+@@@vfp------------------------------------------------
