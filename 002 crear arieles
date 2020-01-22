@@ -1,0 +1,47 @@
+@echo off 
+title %~n0 
+set this="%~f0" 
+call :vfp 
+call \batchs\clean.bat 
+goto :eof 
+
+:vfp 
+if exist *.fxp erase *.fxp 
+\utils\uu\sed "/^@@@vfp/,/^@@@vfp/!d;//d" %this% > tmp_1.txt 
+\utils\vfp9\vfp9.exe -t tmp_1.txt 
+goto :eof 
+@@@vfp------------------------------------------------ 
+set procedure to \utils\lib 
+do setting 
+*do trae_maestro 
+do ver_maestro 
+quit 
+
+* --------------------------- 
+procedure trae_maestro 
+* --------------------------- 
+ConnHandle = SQLCONNECT('AS400', '') 
+=sqlsetprop(ConnHandle,'DispWarnings',.T.) 
+m.sucursal="18" 
+Text to SQLtxt noshow textmerge pretext 7 
+     Select outloc suc, outnum cod_client, adrlin1 rs 
+     from basxx90/om01 
+     where outloc='<<m.sucursal>>' and sprcod='' 
+EndText 
+StatusSQL = SQLEXEC(ConnHandle,sqltxt,"Consulta") 
+*spybrow() 
+copy to tmp_om 
+use tmp_om 
+copy to clientes_18 fox2x 
+SQLDISCONNECT(ConnHandle) 
+
+* --------------------------- 
+proc ver_maestro 
+* --------------------------- 
+use clientes_18 
+copy to ariel for "ARIEL" $ rs fox2x 
+*=spybrow() 
+
+
+
+@@@vfp------------------------------------------------ 
